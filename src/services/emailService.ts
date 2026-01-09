@@ -2,6 +2,14 @@
 import nodemailer from 'nodemailer';
 
 export const sendRegistrationEmail = async (to: string, registrationData: any) => {
+    console.log(`[EmailService] Attempting to send email to: ${to}`);
+    console.log(`[EmailService] Using Account: ${process.env.EMAIL_USER}`);
+
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.error('[EmailService] ERROR: Missing EMAIL_USER or EMAIL_PASS in .env');
+        return false;
+    }
+
     try {
         const transporter = nodemailer.createTransport({
             service: process.env.EMAIL_SERVICE || 'gmail',
@@ -9,6 +17,19 @@ export const sendRegistrationEmail = async (to: string, registrationData: any) =
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS
             }
+        });
+        
+        // Verify connection configuration
+        await new Promise((resolve, reject) => {
+            transporter.verify(function (error, success) {
+                if (error) {
+                    console.error('[EmailService] Transporter Verification Failed:', error);
+                    reject(error);
+                } else {
+                    console.log("[EmailService] Server is ready to take our messages");
+                    resolve(success);
+                }
+            });
         });
 
         const htmlContent = `
@@ -41,17 +62,17 @@ export const sendRegistrationEmail = async (to: string, registrationData: any) =
             </div>
         `;
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: `"ICVK Team" <${process.env.EMAIL_USER}>`,
             to: to,
             subject: 'ICVK Registration Confirmation - Hare Krishna!',
             html: htmlContent
         });
 
-        console.log(`Email sent to ${to}`);
+        console.log(`[EmailService] Email sent successfully! Message ID: ${info.messageId}`);
         return true;
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('[EmailService] FATAL ERROR sending email:', error);
         return false;
     }
 };
