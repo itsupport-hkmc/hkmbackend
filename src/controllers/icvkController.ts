@@ -1,6 +1,7 @@
+
 import { Request, Response } from 'express';
 import Registration from '../models/Registration';
-import { z } from 'zod';
+import { sendRegistrationEmail } from '../services/emailService';
 
 export const createRegistration = async (req: Request, res: Response) => {
     try {
@@ -22,8 +23,14 @@ export const createRegistration = async (req: Request, res: Response) => {
             paymentScreenshotUrl: paymentScreenshot.path,
         });
 
-        await registration.save();
-        res.status(201).json({ message: 'Registration successful', registration });
+        const savedRegistration = await registration.save();
+        
+        // Send email
+        if (body.email) {
+            await sendRegistrationEmail(body.email, savedRegistration);
+        }
+
+        res.status(201).json({ message: 'Registration successful', registration: savedRegistration });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error', error: (error as Error).message });

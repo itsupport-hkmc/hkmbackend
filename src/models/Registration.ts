@@ -1,3 +1,4 @@
+
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IRegistration extends Document {
@@ -19,6 +20,7 @@ export interface IRegistration extends Document {
   pickupRelation: string;
   gitaLifeInterest: string;
   mediaConsent: boolean;
+  email: string;
   childPhotoUrl: string;
   paymentScreenshotUrl: string;
   createdAt: Date;
@@ -43,6 +45,7 @@ const RegistrationSchema: Schema = new Schema({
   pickupRelation: { type: String, required: true },
   gitaLifeInterest: { type: String, required: true },
   mediaConsent: { type: Boolean, required: true },
+  email: { type: String, required: true },
   childPhotoUrl: { type: String, required: true },
   paymentScreenshotUrl: { type: String, required: true },
 }, { timestamps: true });
