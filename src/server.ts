@@ -1,27 +1,30 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import connectDB from './config/db';
+
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import icvkRoutes from './routes/icvkRoutes';
 import authRoutes from './routes/authRoutes';
 
-dotenv.config();
+const app = new Hono();
 
-connectDB();
+// Global Middleware
+app.use('/*', cors());
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+// Routes
+app.route('/api/icvk', icvkRoutes);
+app.route('/api/auth', authRoutes);
 
-app.use(cors());
-app.use(express.json());
+// Health Check
+app.get('/', (c) => c.text('API is running on Cloudflare Workers'));
+app.get('/ping', (c) => c.text('Pong!'));
 
-app.use('/api/icvk', icvkRoutes);
-app.use('/api/auth', authRoutes);
-
-app.get('/', (req, res) => {
-  res.send('API is running');
+// Error Handler
+app.onError((err, c) => {
+  console.error('🔥 [Global Error]', err);
+  return c.json({
+    success: false,
+    message: 'Internal Server Error',
+    error: err.message
+  }, 500);
 });
 
-app.listen(PORT, () => {
-  console.log("Server running on port : ", PORT);
-});
+export default app;

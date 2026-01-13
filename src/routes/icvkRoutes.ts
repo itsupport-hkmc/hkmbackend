@@ -1,15 +1,13 @@
-import express from 'express';
+
+import { Hono } from 'hono';
 import { createRegistration, getRegistrations } from '../controllers/icvkController';
-import { upload } from '../config/cloudinary';
 import { protect } from '../middleware/auth';
 
-const router = express.Router();
+const app = new Hono();
 
-router.post('/register', upload.fields([
-    { name: 'childPhoto', maxCount: 1 },
-    { name: 'paymentScreenshot', maxCount: 1 }
-]), createRegistration);
+// Accept JSON only - no file uploads middleware needed as we expect JSON
+app.post('/register', createRegistration);
 
-router.get('/registrations', protect, getRegistrations);
+app.get('/registrations', protect, getRegistrations);
 
-export default router;
+export default app;
